@@ -3,6 +3,7 @@ iniparser = require 'iniparser'
 Q         = require 'q'
 fs        = require 'fs'
 pg        = require 'pg'
+_         = require 'lodash'
 
 class PgBouncer 
   constructor: (config) ->
@@ -32,8 +33,8 @@ class PgBouncer
   writeConfig: (config, databases) ->
     defer = Q.defer()
     if @configFile
-      databaseContent = for db in databases
-        "#{db.name} = #{if db.host then 'host=' + db.host else ''} port=#{db.port} dbname=#{db.database} #{if db.user then 'user=' + db.user else ''}"
+      databaseContent = for name,database of databases
+        "#{name} = #{PgBouncer.toLibPqConnectionString(database)}"
       configContent = for configName, configValue of config
         "#{configName} = #{configValue}"
       configFileContent = 
@@ -52,7 +53,6 @@ class PgBouncer
     else
       defer.reject('No config file')  
     defer.promise  
-
 
   reload: (databases) ->
     @readConfig()
@@ -84,6 +84,23 @@ class PgBouncer
     @execute('show databases')
 
 PgBouncer.default_port = 6432
-  
+
+PgBouncer.toLibPqConnectionString = (database) ->
+  db = {}
+  if _.isString(database)
+    m = database.trim().match(/^postgresql\:\/\/(?:([a-z0-9_\-.]+)(?::([a-z0-9_\-.]+))?@)?([a-z0-9_\-.]+)?(?::(\d+))?(?:\/([a-z0-9_\-.]+))?/i)
+    if m
+      db.user = m[1]
+      db.password = m[2]
+      db.host = m[3]
+      db.port = m[4]
+      db.dbname = m[5]
+  else if _.isObject(database)
+    db = database    
+  (for key,value of db
+    "#{key}=#{value}" if value
+  ).join(' ')
+      
+
 
 module.exports = PgBouncer
