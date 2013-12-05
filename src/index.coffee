@@ -81,7 +81,9 @@ class PgBouncer
     defer.promise  
 
   status: ->
-    @execute('show databases')
+    @execute('show databases').then (results) ->
+      _.reject results, (database) ->
+        database.name == 'pgbouncer'
 
 PgBouncer.default_port = 6432
 

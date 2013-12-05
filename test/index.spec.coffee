@@ -305,6 +305,41 @@ describe 'PgBouncer', ->
         done()
       .done()
 
+  describe 'status', ->        
+    executeDefer = null
+    pgb = null
+
+    beforeEach ->
+      pgb = new PgBouncer
+      executeDefer = Q.defer()
+      sinon.stub(pgb, 'execute').returns(executeDefer.promise)   
+
+    afterEach ->
+      pgb.execute.restore()  
+
+    it 'should execute show databases command and process the results', (done) ->      
+      pgb.status().then (results) ->
+        results.should.eql [
+          {name: 'wift_racing'},
+          {name: 'wift_sports'}
+        ]
+        sinon.assert.alwaysCalledWith pgb.execute, 'show databases'
+        done()
+      .done()     
+      executeDefer.resolve [
+          {name: 'pgbouncer'},
+          {name: 'wift_racing'},
+          {name: 'wift_sports'}
+        ]
+
+    it 'should returns error when execute return error', (done) ->  
+      pgb.status().catch (error) ->
+        error.should.not.be.empty
+        sinon.assert.alwaysCalledWith pgb.execute, 'show databases'
+        done()
+      .done()
+      executeDefer.reject('execute error')
+
   describe 'toLibPqConnectionString', (database) ->
     it 'should covert full connection uri', ->
       result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://admin:1234@localhost:5433/mydb').split(/\s+/).join('\n'))
