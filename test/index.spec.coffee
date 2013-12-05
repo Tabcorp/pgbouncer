@@ -124,17 +124,10 @@ describe 'PgBouncer', ->
         listen_port: 5434
         auth_type: 'any'  
       ,
-        [{
-          name: 'wift_racing'
-          host: 'dbserver'
-          port: 5432
-          database: 'wift_racing'
-        },{
-          name: 'wift_sports'
-          port: '5433'
-          database: 'wift_sports'
-          user: 'postgres'
-        }]
+        {
+          'wift_racing': 'postgresql://dbserver:5432/wift_racing'
+          'wift_sports': 'postgresql://postgres@:5433/wift_sports'
+        }
       ).then ->  
         sinon.assert.calledOnce fs.writeFile
         fs.writeFile.args[0][0].should.eql '/etc/pgbouncer.ini'
@@ -312,5 +305,50 @@ describe 'PgBouncer', ->
         done()
       .done()
 
-  
+  describe 'toLibPqConnectionString', (database) ->
+    it 'should covert full connection uri', ->
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://admin:1234@localhost:5433/mydb').split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.have.property 'port', '5433'
+      result.should.have.property 'dbname', 'mydb'
+      result.should.have.property 'user', 'admin'
+      result.should.have.property 'password', '1234'
+
+    it 'should covert minimal connection uri', ->  
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://').split(/\s+/).join('\n'))
+      result.should.eql {}
+
+    it 'should covert connection uri with host only', ->    
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://localhost').split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.not.have.property 'port'
+      result.should.not.have.property 'dbname'
+      result.should.not.have.property 'user'
+      result.should.not.have.property 'password'
+
+    it 'should covert connection uri with host and dbname only', ->    
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://localhost/mydb').split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.not.have.property 'port'
+      result.should.have.property 'dbname', 'mydb'
+      result.should.not.have.property 'user'
+      result.should.not.have.property 'password'  
+
+    it 'should covert connection uri with host and user only', ->    
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://user@localhost').split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.not.have.property 'port'
+      result.should.not.have.property 'dbname'
+      result.should.have.property 'user', 'user'
+      result.should.not.have.property 'password'  
+
+    it 'should covert hash object', ->    
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString({user: 'user', host: 'localhost'}).split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.not.have.property 'port'
+      result.should.not.have.property 'dbname'
+      result.should.have.property 'user', 'user'  
+      result.should.not.have.property 'password'  
+
+
   
