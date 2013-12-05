@@ -1,0 +1,29 @@
+{
+  "name": "pgbouncer",
+  "version": "0.0.1",
+  "description": "Wrapper of pgbouncer service",
+  "author": "Tabcorp Digital Technology Team",
+  "license": "Copyright TabCorp Pty Ltd 2013",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TabDigital/pgbouncer.git"
+  },
+  "main": "src/index.coffee",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script"
+  },
+  "dependencies": {
+    "coffee-script": "~1.6.3",
+    "js-match": "1.0.x",
+    "q": "~0.9.7",
+    "iniparser": "~1.0.5",    
+    "mocha": "~1.15.1",
+    "pg": "~2.8.3"
+  },
+  "devDependencies": {
+    "mocha": "~1.14.0",
+    "should": "~2.1.0",
+    "mocks": "0.0.15",
+    "sinon": "~1.7.3"
+  }
+}
