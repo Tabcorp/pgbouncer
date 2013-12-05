@@ -59,11 +59,11 @@ describe 'PgBouncer', ->
         pgb.should.have.property 'configFile'
         pgb.configFile.should.eql '/etc/pgbouncer.ini'
         pgb.should.have.property 'pgbConnectionString'
-        pgb.pgbConnectionString.should.eql 'postgres://127.0.0.1:5434/pgbouncer'
+        pgb.pgbConnectionString.should.eql 'postgres://:5434/pgbouncer'
         done()
       .done()  
 
-    it 'should read config file and generate pgb connection string with localhost and default port if config does not have listen_addr and listen_port', (done) ->
+    it 'should read config file and generate pgb connection string with default port if config does not have listen_port', (done) ->
       iniparser.parse.callsArgWith(1, null,
         some_config:
           name1: 'value1'
@@ -78,7 +78,7 @@ describe 'PgBouncer', ->
         pgb.should.have.property 'configFile'
         pgb.configFile.should.eql '/etc/pgbouncer.ini'
         pgb.should.have.property 'pgbConnectionString'
-        pgb.pgbConnectionString.should.eql "postgres://localhost:#{PgBouncer.default_port}/pgbouncer"
+        pgb.pgbConnectionString.should.eql "postgres://:#{PgBouncer.default_port}/pgbouncer"
         done()
       .done()  
 

@@ -24,7 +24,7 @@ class PgBouncer
           defer.reject(error)
         else   
           @config = data.pgbouncer || {}
-          @pgbConnectionString = "postgres://#{@config.listen_addr ? 'localhost'}:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
+          @pgbConnectionString = "postgres://:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
           defer.resolve(@)        
     else
       defer.reject('No config file')
