@@ -61,7 +61,7 @@ class PgBouncer
     .then => 
       @execute('reload')
   
-  execute: (command)->
+  run: (command)->
     defer = Q.defer()
     if @pgbConnectionString
       pg.connect @pgbConnectionString, (error, client, done) ->
@@ -79,6 +79,13 @@ class PgBouncer
     else
       defer.reject('Connection string is empty')
     defer.promise  
+
+  execute: (command)->
+    if @pgbConnectionString
+      @run(command)
+    else
+      @readConfig().then =>
+        @run(command)
 
   status: ->
     @execute('show databases').then (results) ->

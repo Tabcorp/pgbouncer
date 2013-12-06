@@ -245,7 +245,7 @@ describe 'PgBouncer', ->
       writeDefer.resolve()  
       executeDefer.reject(new Error('pgbouncer error'))  
 
-  describe 'execute', ->        
+  describe 'run', ->        
     pg_connect = null
     pg_query = null    
     pg_done = null
@@ -265,7 +265,7 @@ describe 'PgBouncer', ->
       pg.connect.callsArgWith(1, null, {query: pg_query}, pg_done)      
       pgb = new PgBouncer
       pgb.pgbConnectionString = pgbConnectionString
-      pgb.execute('some command').then (results) ->
+      pgb.run('some command').then (results) ->
         results.should.eql query_results
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.alwaysCalledWith pg_query, 'some command;'
@@ -277,7 +277,7 @@ describe 'PgBouncer', ->
       pg.connect.callsArgWith(1, new Error('connect error'), null, pg_done)      
       pgb = new PgBouncer
       pgb.pgbConnectionString = pgbConnectionString
-      pgb.execute('some command').catch (error) ->
+      pgb.run('some command').catch (error) ->
         error.should.not.be.empty
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.alwaysCalledWith pg_done, error
@@ -289,7 +289,7 @@ describe 'PgBouncer', ->
       pg.connect.callsArgWith(1, null, {query: pg_query}, pg_done)      
       pgb = new PgBouncer
       pgb.pgbConnectionString = pgbConnectionString
-      pgb.execute('some command').catch (error) ->
+      pgb.run('some command').catch (error) ->
         error.should.not.be.empty
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.alwaysCalledWith pg_query, 'some command;'
@@ -299,11 +299,37 @@ describe 'PgBouncer', ->
 
     it 'should returns error when pgbConnectionString property is empty', (done) ->  
       pgb = new PgBouncer
-      pgb.execute('some command').catch (error) ->
+      pgb.run('some command').catch (error) ->
         error.should.not.be.empty
         sinon.assert.notCalled pg.connect
         done()
       .done()
+
+  describe 'execute', -> 
+    it 'should run the command if pgbConnectionString property is not emty', (done) ->
+      pgb = new PgBouncer
+      runDefer = Q.defer()
+      sinon.stub(pgb, 'run').returns(runDefer.promise)
+      pgb.pgbConnectionString = "something"
+      pgb.execute('some command').then ->
+        sinon.assert.alwaysCalledWith pgb.run, 'some command'
+        done()
+      .done() 
+      runDefer.resolve()
+
+    it 'should try to read config and then run the command if pgbConnectionString property is emty', (done) ->
+      pgb = new PgBouncer
+      runDefer = Q.defer()
+      readConfig = Q.defer()
+      sinon.stub(pgb, 'run').returns(runDefer.promise)
+      sinon.stub(pgb, 'readConfig').returns(readConfig.promise)
+      pgb.execute('some command').then ->
+        sinon.assert.calledOnce pgb.readConfig
+        sinon.assert.alwaysCalledWith pgb.run, 'some command'
+        done()
+      .done() 
+      readConfig.resolve()
+      runDefer.resolve()  
 
   describe 'status', ->        
     executeDefer = null
