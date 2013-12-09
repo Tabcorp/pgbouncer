@@ -10,7 +10,7 @@
   },
   "main": "src/index.coffee",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script"
+    "test": "./node_modules/.bin/mocha"
   },
   "dependencies": {
     "coffee-script": "~1.6.3",
