@@ -27,7 +27,7 @@ class PgBouncer
           @pgbConnectionString = "postgres://:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
           defer.resolve(@)        
     else
-      defer.reject('No config file')
+      defer.reject(new Error('No config file'))
     defer.promise  
 
   writeConfig: (config, databases) ->
@@ -51,7 +51,7 @@ class PgBouncer
         else
           defer.resolve(@)
     else
-      defer.reject('No config file')  
+      defer.reject(new Error('No config file'))
     defer.promise  
 
   reload: (databases) ->
@@ -76,7 +76,7 @@ class PgBouncer
               defer.resolve(results.rows) 
             done()
     else
-      defer.reject('Connection string is empty')
+      defer.reject(new Error('Connection string is empty'))
     defer.promise  
 
   execute: (command)->

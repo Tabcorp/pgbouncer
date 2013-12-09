@@ -92,7 +92,7 @@ describe 'PgBouncer', ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
         assert pgb.config == null
         assert pgb.pgbConnectionString == null
-        error.should.not.empty
+        error.should.have.property 'message'
         done()
       .done()
         
@@ -105,7 +105,7 @@ describe 'PgBouncer', ->
         sinon.assert.notCalled iniparser.parse
         assert pgb.config == null
         assert pgb.pgbConnectionString == null
-        error.should.not.empty
+        error.should.have.property 'message'
         done()
       .done() 
 
@@ -157,14 +157,14 @@ describe 'PgBouncer', ->
       pgb = new PgBouncer
         configFile: '/etc/pgbouncer.ini'
       pgb.writeConfig({}, []).catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         done()
       .done()  
 
     it 'should return error if configFile property is empty', (done) ->
       pgb = new PgBouncer
       pgb.writeConfig({}, []).catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         done()
       .done()  
 
@@ -197,7 +197,7 @@ describe 'PgBouncer', ->
       sinon.stub(pgb, 'writeConfig')
       sinon.stub(pgb, 'execute')
       pgb.reload().catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         sinon.assert.calledOnce pgb.readConfig
         sinon.assert.notCalled pgb.writeConfig
         sinon.assert.notCalled pgb.execute
@@ -214,7 +214,7 @@ describe 'PgBouncer', ->
       sinon.stub(pgb, 'execute')
       databases = {name: 'databases array'}
       pgb.reload(databases).catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         sinon.assert.calledOnce pgb.readConfig
         sinon.assert.calledOnce pgb.writeConfig
         sinon.assert.alwaysCalledWith pgb.writeConfig, pgb.config, databases
@@ -279,7 +279,7 @@ describe 'PgBouncer', ->
       pgb = new PgBouncer
       pgb.pgbConnectionString = pgbConnectionString
       pgb.run('some command').catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.calledOnce pg_done
         sinon.assert.alwaysCalledWithExactly pg_done
@@ -292,7 +292,7 @@ describe 'PgBouncer', ->
       pgb = new PgBouncer
       pgb.pgbConnectionString = pgbConnectionString
       pgb.run('some command').catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.alwaysCalledWith pg_query, 'some command;'
         sinon.assert.calledOnce pg_done
@@ -303,7 +303,7 @@ describe 'PgBouncer', ->
     it 'should returns error when pgbConnectionString property is empty', (done) ->  
       pgb = new PgBouncer
       pgb.run('some command').catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         sinon.assert.notCalled pg.connect
         done()
       .done()
@@ -363,11 +363,11 @@ describe 'PgBouncer', ->
 
     it 'should returns error when execute return error', (done) ->  
       pgb.status().catch (error) ->
-        error.should.not.be.empty
+        error.should.have.property 'message'
         sinon.assert.alwaysCalledWith pgb.execute, 'show databases'
         done()
       .done()
-      executeDefer.reject('execute error')
+      executeDefer.reject(new Error('execute error'))
 
   describe 'toLibPqConnectionString', (database) ->
     it 'should covert full connection uri', ->
