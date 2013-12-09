@@ -270,6 +270,7 @@ describe 'PgBouncer', ->
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.alwaysCalledWith pg_query, 'some command;'
         sinon.assert.calledOnce pg_done
+        sinon.assert.alwaysCalledWith pg_done
         done()
       .done()  
 
@@ -280,7 +281,8 @@ describe 'PgBouncer', ->
       pgb.run('some command').catch (error) ->
         error.should.not.be.empty
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
-        sinon.assert.alwaysCalledWith pg_done, error
+        sinon.assert.calledOnce pg_done
+        sinon.assert.alwaysCalledWithExactly pg_done
         done()
       .done()  
 
@@ -293,7 +295,8 @@ describe 'PgBouncer', ->
         error.should.not.be.empty
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
         sinon.assert.alwaysCalledWith pg_query, 'some command;'
-        sinon.assert.alwaysCalledWith pg_done, error
+        sinon.assert.calledOnce pg_done
+        sinon.assert.alwaysCalledWithExactly pg_done
         done()
       .done()       
 

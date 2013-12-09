@@ -67,15 +67,14 @@ class PgBouncer
       pg.connect @pgbConnectionString, (error, client, done) ->
         if (error)
           defer.reject(error)
-          done(error)
+          done()
         else
           client.query "#{command};", (error, results) ->  
             if (error)
               defer.reject(error)
-              done(error)
             else 
               defer.resolve(results.rows) 
-              done()
+            done()
     else
       defer.reject('Connection string is empty')
     defer.promise  
