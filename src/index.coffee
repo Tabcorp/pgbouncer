@@ -68,29 +68,17 @@ class PgBouncer
       @execute('reload')
 
   run: (command)->
-    defer = Q.defer()
     if @pgbConnectionString
-      pg.connect @pgbConnectionString, (error, client, done) ->
-        if (error)
-          defer.reject(error)
-          done()
-        else
-          client.query "#{command};", (error, results) ->  
-            if (error)
-              defer.reject(error)
-            else 
-              defer.resolve(results.rows) 
-            done()
+      Q.nfcall(pg.connect, @pgbConnectionString).then ([client, done]) ->
+        Q.ninvoke(client, 'query', command).finally -> done()  
     else
-      defer.reject(new Error('Connection string is empty'))
-    defer.promise  
+      Q.reject(new Error('Connection string is empty'))
 
   execute: (command)->
     if @pgbConnectionString
       @run(command)
     else
-      @readConfig().then =>
-        @run(command)
+      @readConfig().then => @run(command)
 
   status: ->
     @execute('show databases').then (results) ->
