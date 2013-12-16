@@ -296,7 +296,8 @@ describe 'PgBouncer', ->
         sinon.assert.alwaysCalledWith pgb.execute, 'show databases'
         done()
       .done()     
-      executeDefer.resolve [
+      executeDefer.resolve 
+        rows: [
           {name: 'pgbouncer'},
           {name: 'wift_racing'},
           {name: 'wift_sports'}
