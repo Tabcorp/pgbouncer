@@ -13,12 +13,8 @@ class PgBouncer
     if errors.length == 0
       @configFile = config.configFile
 
-  readDatabasesConfig: ->
-
   readConfig: ->
     defer = Q.defer()
-    @config = null
-    @databases = null
     @pgbConnectionString = null  
     if @configFile
       iniparser.parse @configFile, (error, data) =>        
@@ -26,12 +22,14 @@ class PgBouncer
           console.warn("Cannot read #{@configFile}:\n #{error}")
           defer.reject(error)
         else   
-          @config = data.pgbouncer ? {}
+          config = data.pgbouncer ? {}
           if data.databases?
-            @databases = {}
-            @databases[key] = PgBouncer.toConnectionURI(db) for key,db of data.databases
-          @pgbConnectionString = "postgresql://:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
-          defer.resolve(@)        
+            databases = {}
+            databases[key] = PgBouncer.toConnectionURI(db) for key,db of data.databases
+          @pgbConnectionString = "postgresql://:#{config.listen_port ? PgBouncer.default_port}/pgbouncer"
+          defer.resolve
+            config: config
+            databases: databases        
     else
       defer.reject(new Error('No config file'))
     defer.promise  
@@ -65,7 +63,7 @@ class PgBouncer
 
   run: (command)->
     if @pgbConnectionString
-      Q.nfcall(pg.connect, @pgbConnectionString).then ([client, done]) ->
+      Q.ninvoke(pg, 'connect', @pgbConnectionString).then ([client, done]) ->
         Q.ninvoke(client, 'query', command).finally -> done()  
     else
       Q.reject(new Error('Connection string is empty'))
