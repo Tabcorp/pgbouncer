@@ -30,7 +30,7 @@ class PgBouncer
           if data.databases?
             @databases = {}
             @databases[key] = PgBouncer.toConnectionURI(db) for key,db of data.databases
-          @pgbConnectionString = "postgres://:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
+          @pgbConnectionString = "postgresql://:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
           defer.resolve(@)        
     else
       defer.reject(new Error('No config file'))
@@ -85,7 +85,7 @@ PgBouncer.default_port = 6432
 PgBouncer.toLibPqConnectionString = (database) ->
   db = {}
   if _.isString(database)
-    m = database.trim().match(/^postgresql\:\/\/(?:([a-z0-9_\-.]+)(?::([a-z0-9_\-.]+))?@)?([a-z0-9_\-.]+)?(?::(\d+))?(?:\/([a-z0-9_\-.]+))?/i)
+    m = database.trim().match(/^.+\:\/\/(?:([a-z0-9_\-.]+)(?::([a-z0-9_\-.]+))?@)?([a-z0-9_\-.]+)?(?::(\d+))?(?:\/([a-z0-9_\-.]+))?/i)
     if m
       db.user = m[1]
       db.password = m[2]
