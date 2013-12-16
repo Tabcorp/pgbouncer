@@ -281,14 +281,14 @@ describe 'PgBouncer', ->
 
     it 'should send the command to pgbouncer and return results', (done) ->
       query_results = {name: 'query_results'}
-      pg_query.callsArgWith(1, null, {rows: query_results})
+      pg_query.callsArgWith(1, null, query_results)
       pg.connect.callsArgWith(1, null, {query: pg_query}, pg_done)      
       pgb = new PgBouncer
       pgb.pgbConnectionString = pgbConnectionString
       pgb.run('some command').then (results) ->
         results.should.eql query_results
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
-        sinon.assert.alwaysCalledWith pg_query, 'some command;'
+        sinon.assert.alwaysCalledWith pg_query, 'some command'
         sinon.assert.calledOnce pg_done
         sinon.assert.alwaysCalledWith pg_done
         done()
@@ -301,8 +301,6 @@ describe 'PgBouncer', ->
       pgb.run('some command').catch (error) ->
         error.should.have.property 'message'
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
-        sinon.assert.calledOnce pg_done
-        sinon.assert.alwaysCalledWithExactly pg_done
         done()
       .done()  
 
@@ -314,7 +312,7 @@ describe 'PgBouncer', ->
       pgb.run('some command').catch (error) ->
         error.should.have.property 'message'
         sinon.assert.alwaysCalledWith pg.connect, pgbConnectionString
-        sinon.assert.alwaysCalledWith pg_query, 'some command;'
+        sinon.assert.alwaysCalledWith pg_query, 'some command'
         sinon.assert.calledOnce pg_done
         sinon.assert.alwaysCalledWithExactly pg_done
         done()
