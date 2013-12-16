@@ -52,21 +52,18 @@ describe 'PgBouncer', ->
       PgBouncer.toConnectionURI.withArgs('database 2 properties').returns('database 2 connection string')
       pgb = new PgBouncer
         configFile: '/etc/pgbouncer.ini'
-      pgb.readConfig().then ->
+      pgb.readConfig().then ({config, databases}) ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
-        pgb.should.have.property 'config'
-        pgb.config.should.not.have.property 'databases'
-        pgb.config.should.have.property 'listen_port'
-        pgb.config.listen_port.should.eql 5434
-        pgb.config.should.have.property 'listen_addr'
-        pgb.config.listen_addr.should.eql '127.0.0.1'    
-        pgb.config.should.have.property 'auth_type'
-        pgb.config.auth_type.should.eql 'any'
-        pgb.should.have.property 'databases'
-        pgb.databases.should.property 'db1'
-        pgb.databases.db1.should.eql 'database 1 connection string'
-        pgb.databases.should.property 'db2'
-        pgb.databases.db2.should.eql 'database 2 connection string'
+        config.should.have.property 'listen_port'
+        config.listen_port.should.eql 5434
+        config.should.have.property 'listen_addr'
+        config.listen_addr.should.eql '127.0.0.1'    
+        config.should.have.property 'auth_type'
+        config.auth_type.should.eql 'any'
+        databases.should.property 'db1'
+        databases.db1.should.eql 'database 1 connection string'
+        databases.should.property 'db2'
+        databases.db2.should.eql 'database 2 connection string'
         done()
       .done()  
         
@@ -81,6 +78,7 @@ describe 'PgBouncer', ->
         configFile: '/etc/pgbouncer.ini'
       pgb.readConfig().then ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
+        pgb.should.have.property 'pgbConnectionString'
         pgb.pgbConnectionString.should.eql 'postgresql://:5434/pgbouncer'
         done()
       .done()  
@@ -95,35 +93,30 @@ describe 'PgBouncer', ->
         configFile: '/etc/pgbouncer.ini'
       pgb.readConfig().then ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
-        pgb.should.have.property 'config'
         pgb.should.have.property 'pgbConnectionString'
         pgb.pgbConnectionString.should.eql "postgresql://:#{PgBouncer.default_port}/pgbouncer"
         done()
       .done()  
 
-    it 'should reset config and pgbConnectionString if parser return error', (done) ->
+    it 'should reset pgbConnectionString if parser return error', (done) ->
       iniparser.parse.callsArgWith(1, new Error('parse error'), {})
       pgb = new PgBouncer
         configFile: '/etc/pgbouncer.ini'
-      pgb.config = 'previous config'
       pgb.pgbConnectionString = 'previous connection string'
       pgb.readConfig().catch (error) ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
-        assert pgb.config == null
         assert pgb.pgbConnectionString == null
         error.should.have.property 'message'
         done()
       .done()
         
 
-    it 'should reset config and databases pgbConnectionString if configFile property is empty', (done) ->
+    it 'should reset pgbConnectionString if configFile property is empty', (done) ->
       pgb = new PgBouncer
       pgb.config = 'previous config'
       pgb.pgbConnectionString = 'previous connection string'
       pgb.readConfig().catch (error) ->
         sinon.assert.notCalled iniparser.parse
-        assert pgb.config == null
-        assert pgb.databases == null
         assert pgb.pgbConnectionString == null
         error.should.have.property 'message'
         done()
