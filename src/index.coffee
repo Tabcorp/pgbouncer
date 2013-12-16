@@ -78,8 +78,7 @@ class PgBouncer
 
   status: ->
     @execute('show databases').then (results) ->
-      _.reject results, (database) ->
-        database.name == 'pgbouncer'
+      _.reject results.rows, (database) -> database.name == 'pgbouncer'
 
 PgBouncer.default_port = 6432
 
