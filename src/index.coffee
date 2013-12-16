@@ -13,9 +13,12 @@ class PgBouncer
     if errors.length == 0
       @configFile = config.configFile
 
+  readDatabasesConfig: ->
+
   readConfig: ->
     defer = Q.defer()
     @config = null
+    @databases = null
     @pgbConnectionString = null  
     if @configFile
       iniparser.parse @configFile, (error, data) =>        
@@ -23,7 +26,10 @@ class PgBouncer
           console.warn("Cannot read #{@configFile}:\n #{error}")
           defer.reject(error)
         else   
-          @config = data.pgbouncer || {}
+          @config = data.pgbouncer ? {}
+          if data.databases?
+            @databases = {}
+            @databases[key] = PgBouncer.toConnectionURI(db) for key,db of data.databases
           @pgbConnectionString = "postgres://:#{@config.listen_port ? PgBouncer.default_port}/pgbouncer"
           defer.resolve(@)        
     else
@@ -60,7 +66,7 @@ class PgBouncer
       @writeConfig(@config, databases)
     .then => 
       @execute('reload')
-  
+
   run: (command)->
     defer = Q.defer()
     if @pgbConnectionString
@@ -108,7 +114,27 @@ PgBouncer.toLibPqConnectionString = (database) ->
   (for key,value of db
     "#{key}=#{value}" if value
   ).join(' ')
-      
-
+     
+PgBouncer.toConnectionURI = (properties) ->     
+  if _.isString(properties) 
+    PgBouncer.toConnectionURI(iniparser.parseString(properties.split(/\s+/).join('\n')))
+  else if _.isObject(properties) 
+    if properties.user? and properties.password?
+      authentication = "#{properties.user}:#{properties.password}@" 
+    else if properties.user?   
+      authentication = "#{properties.user}@"
+    else   
+      authentication = ''
+    if properties.port?
+      port = ":#{properties.port}"  
+    else
+      port = ''  
+    if properties.dbname?  
+      dbname = "/#{properties.dbname}"
+    else
+      dbname = ''
+    "postgresql://#{authentication}#{properties.host ? ''}#{port}#{dbname}" 
+  else
+    "postgresql://"  
 
 module.exports = PgBouncer
