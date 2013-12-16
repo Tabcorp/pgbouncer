@@ -26,24 +26,30 @@ describe 'PgBouncer', ->
     it 'should not do anything if the argument does not have configFile entry', ->
       pgb = new PgBouncer
         other_entry: 'value'
-      pgb.should.not.have.property 'configFile'
+      pgb.should.not.have.property 'configFile' 
+
 
   describe 'readConfig', ->
     beforeEach ->
       sinon.stub(iniparser, 'parse')
+      sinon.stub(PgBouncer, 'toConnectionURI')
     
     afterEach ->
       iniparser.parse.restore()
+      PgBouncer.toConnectionURI.restore()
 
-    it 'should read config file and generate pgb connection string if config has valid pgbouncer entry', (done) ->
+    it 'should read config file and parse pgbouncer and databases entry', (done) ->
       iniparser.parse.callsArgWith(1, null, 
         databases:
-          name: 'databases array'
+          db1: 'database 1 properties'
+          db2: 'database 2 properties'
         pgbouncer:  
           listen_port: 5434
           listen_addr: '127.0.0.1'
           auth_type: 'any'
       )
+      PgBouncer.toConnectionURI.withArgs('database 1 properties').returns('database 1 connection string')
+      PgBouncer.toConnectionURI.withArgs('database 2 properties').returns('database 2 connection string')
       pgb = new PgBouncer
         configFile: '/etc/pgbouncer.ini'
       pgb.readConfig().then ->
@@ -56,9 +62,25 @@ describe 'PgBouncer', ->
         pgb.config.listen_addr.should.eql '127.0.0.1'    
         pgb.config.should.have.property 'auth_type'
         pgb.config.auth_type.should.eql 'any'
-        pgb.should.have.property 'configFile'
-        pgb.configFile.should.eql '/etc/pgbouncer.ini'
-        pgb.should.have.property 'pgbConnectionString'
+        pgb.should.have.property 'databases'
+        pgb.databases.should.property 'db1'
+        pgb.databases.db1.should.eql 'database 1 connection string'
+        pgb.databases.should.property 'db2'
+        pgb.databases.db2.should.eql 'database 2 connection string'
+        done()
+      .done()  
+        
+    it 'should read config file and generate pgb connection string if config has valid pgbouncer entry', (done) ->
+      iniparser.parse.callsArgWith(1, null, 
+        pgbouncer:  
+          listen_port: 5434
+          listen_addr: '127.0.0.1'
+          auth_type: 'any'
+      )
+      pgb = new PgBouncer
+        configFile: '/etc/pgbouncer.ini'
+      pgb.readConfig().then ->
+        sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
         pgb.pgbConnectionString.should.eql 'postgres://:5434/pgbouncer'
         done()
       .done()  
@@ -74,9 +96,6 @@ describe 'PgBouncer', ->
       pgb.readConfig().then ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
         pgb.should.have.property 'config'
-        pgb.config.should.be.empty
-        pgb.should.have.property 'configFile'
-        pgb.configFile.should.eql '/etc/pgbouncer.ini'
         pgb.should.have.property 'pgbConnectionString'
         pgb.pgbConnectionString.should.eql "postgres://:#{PgBouncer.default_port}/pgbouncer"
         done()
@@ -97,13 +116,14 @@ describe 'PgBouncer', ->
       .done()
         
 
-    it 'should reset config and pgbConnectionString if configFile property is empty', (done) ->
+    it 'should reset config and databases pgbConnectionString if configFile property is empty', (done) ->
       pgb = new PgBouncer
       pgb.config = 'previous config'
       pgb.pgbConnectionString = 'previous connection string'
       pgb.readConfig().catch (error) ->
         sinon.assert.notCalled iniparser.parse
         assert pgb.config == null
+        assert pgb.databases == null
         assert pgb.pgbConnectionString == null
         error.should.have.property 'message'
         done()
@@ -390,6 +410,14 @@ describe 'PgBouncer', ->
       result.should.not.have.property 'user'
       result.should.not.have.property 'password'
 
+    it 'should covert connection uri with dbname only', ->    
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql:///mydb').split(/\s+/).join('\n'))
+      result.should.not.have.property 'host'
+      result.should.not.have.property 'port'
+      result.should.have.property 'dbname', 'mydb'
+      result.should.not.have.property 'user'
+      result.should.not.have.property 'password'  
+
     it 'should covert connection uri with host and dbname only', ->    
       result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://localhost/mydb').split(/\s+/).join('\n'))
       result.should.have.property 'host', 'localhost'
@@ -414,5 +442,40 @@ describe 'PgBouncer', ->
       result.should.have.property 'user', 'user'  
       result.should.not.have.property 'password'  
 
+  describe 'toConnectionURI', (database) ->
+    it 'should covert all properties', ->
+      result = PgBouncer.toConnectionURI('dbname=mydb host=localhost port=5433 user=admin password=1234')
+      result.should.eql 'postgresql://admin:1234@localhost:5433/mydb'
 
+    it 'should covert empty string', ->  
+      result = PgBouncer.toConnectionURI('')
+      result.should.eql 'postgresql://'
+
+    it 'should covert null string', ->  
+      result = PgBouncer.toConnectionURI(null)
+      result.should.eql 'postgresql://'  
+
+    it 'should covert undefined string', ->  
+      result = PgBouncer.toConnectionURI()
+      result.should.eql 'postgresql://'    
+
+    it 'should covert with host property only', ->    
+      result = PgBouncer.toConnectionURI('host=localhost')
+      result.should.eql 'postgresql://localhost'    
+
+    it 'should covert with dbname property only', ->    
+      result = PgBouncer.toConnectionURI('dbname=mydb')
+      result.should.eql 'postgresql:///mydb'    
+
+    it 'should covert with host and dbname properties only', ->    
+      result = PgBouncer.toConnectionURI('host=localhost dbname=mydb')
+      result.should.eql 'postgresql://localhost/mydb'    
+
+    it 'should covert with host and user properties only', ->    
+      result = PgBouncer.toConnectionURI('host=localhost user=user1')
+      result.should.eql 'postgresql://user1@localhost'    
+
+    it 'should covert hash object', ->    
+      result = PgBouncer.toConnectionURI({user: 'user1', host: 'localhost'})
+      result.should.eql 'postgresql://user1@localhost'    
   
