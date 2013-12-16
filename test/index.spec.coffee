@@ -81,7 +81,7 @@ describe 'PgBouncer', ->
         configFile: '/etc/pgbouncer.ini'
       pgb.readConfig().then ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
-        pgb.pgbConnectionString.should.eql 'postgres://:5434/pgbouncer'
+        pgb.pgbConnectionString.should.eql 'postgresql://:5434/pgbouncer'
         done()
       .done()  
 
@@ -97,7 +97,7 @@ describe 'PgBouncer', ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
         pgb.should.have.property 'config'
         pgb.should.have.property 'pgbConnectionString'
-        pgb.pgbConnectionString.should.eql "postgres://:#{PgBouncer.default_port}/pgbouncer"
+        pgb.pgbConnectionString.should.eql "postgresql://:#{PgBouncer.default_port}/pgbouncer"
         done()
       .done()  
 
@@ -319,6 +319,22 @@ describe 'PgBouncer', ->
       result.should.have.property 'dbname', 'mydb'
       result.should.have.property 'user', 'admin'
       result.should.have.property 'password', '1234'
+
+    it 'should covert full connection uri start with pg://', ->
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('pg://admin:1234@localhost:5433/mydb').split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.have.property 'port', '5433'
+      result.should.have.property 'dbname', 'mydb'
+      result.should.have.property 'user', 'admin'
+      result.should.have.property 'password', '1234'  
+
+    it 'should covert full connection uri start with postgres://', ->
+      result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgres://admin:1234@localhost:5433/mydb').split(/\s+/).join('\n'))
+      result.should.have.property 'host', 'localhost'
+      result.should.have.property 'port', '5433'
+      result.should.have.property 'dbname', 'mydb'
+      result.should.have.property 'user', 'admin'
+      result.should.have.property 'password', '1234'    
 
     it 'should covert minimal connection uri', ->  
       result = iniparser.parseString(PgBouncer.toLibPqConnectionString('postgresql://').split(/\s+/).join('\n'))
