@@ -61,11 +61,7 @@ class PgBouncer
     defer.promise  
 
   reload: (databases) ->
-    @readConfig()
-    .then =>
-      @writeConfig(@config, databases)
-    .then => 
-      @execute('reload')
+    @execute('reload')
 
   run: (command)->
     if @pgbConnectionString
