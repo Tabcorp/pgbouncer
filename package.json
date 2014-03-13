@@ -13,7 +13,7 @@
     "test": "./node_modules/.bin/mocha"
   },
   "dependencies": {
-    "coffee-script": "~1.6.3",
+    "coffee-script": "~1.7.1",
     "js-match": "git+https://b3445a9c5dac076d8c2d99011114394de3e3130d:x-oauth-basic@github.com/TabDigital/js-match.git#v0.0.2",
     "q": "~0.9.7",
     "iniparser": "~1.0.5",
