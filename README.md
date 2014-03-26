@@ -91,7 +91,7 @@ You can also execute any valid *pgbouncer* command:
 
 ```coffee
 pgb.execute('show users')
-   .then -> console.log('done')
+   .then (results) -> console.log(results.rows)
 ```
 
 Please check [pgbouncer documentation](http://pgbouncer.projects.pgfoundry.org/doc/usage.html) for a list of commands.
