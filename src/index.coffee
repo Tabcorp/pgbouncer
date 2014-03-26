@@ -28,19 +28,19 @@ class PgBouncer
             databases[key] = cnx.toURI(db) for key,db of data.databases
           @pgbConnectionString = "postgresql://:#{config.listen_port ? PgBouncer.default_port}/pgbouncer"
           defer.resolve
-            config: config
+            pgbouncer: config
             databases: databases
     else
       defer.reject(new Error('No config file'))
     defer.promise
 
   # Update the INI file
-  write: (config, databases) ->
+  write: (contents) ->
     defer = Q.defer()
     if @configFile
-      databaseContent = for name,database of databases
+      databaseContent = for name,database of contents.databases
         "#{name} = #{cnx.toLibPq(database)}"
-      configContent = for configName, configValue of config
+      configContent = for configName, configValue of contents.pgbouncer
         "#{configName} = #{configValue}"
       configFileContent =
       """
@@ -61,9 +61,9 @@ class PgBouncer
     defer.promise
 
   # Write new databases without changing the config
-  writeDatabases: (databases) ->
+  writeDatabases: (newDatabases) ->
     @read()
-    .then (contents) => @write(contents.config, databases)
+    .then ({pgbouncer, databases}) => @write(pgbouncer: pgbouncer, databases: newDatabases)
 
   # Reload the routing from the config on disk
   reload: ->

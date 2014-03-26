@@ -16,33 +16,33 @@ pgb = new PgBouncer(configFile: '/etc/pgbouncer.ini')
 
 ```coffee
 pgb.read()
-   .then (contents) ->
+   .then (config) ->
 
   # [pgbouncer] section
 
-  # contents.config.listen_port:  5434
-  # contents.config.listen_addr:  '127.0.0.1'
-  # contents.config.auth_type:    'any'  
+  # config.pgbouncer.listen_port:  5434
+  # config.pgbouncer.listen_addr:  '127.0.0.1'
+  # config.pgbouncer.auth_type:    'any'  
 
   # [databases] section
 
-  # contents.databases.mydb1:  'postgresql://localhost/db1'
-  # contents.databases.mydb2:  'postgresql://localhost/db2'
+  # config.databases.mydb1:  'postgresql://localhost/db1'
+  # config.databases.mydb2:  'postgresql://localhost/db2'
 ```
 
 ## Updating the INI file
 
 ```coffee
-pgconfig =
-  listen_port:  5434
-  listen_addr:  '127.0.0.1'
-  auth_type:    'any'  
+config =
+  pgbouncer:
+    listen_port:  5434
+    listen_addr:  '127.0.0.1'
+    auth_type:    'any'  
+  databases:
+    mydb1:  'postgresql://localhost/db1'
+    mydb2:  'postgresql://localhost/db2'
 
-databases =
-  mydb1:  'postgresql://localhost/db1'
-  mydb2:  'postgresql://localhost/db2'
-
-pgb.write(pgconfig, databases)
+pgb.write(config)
    .then -> console.log('done')
 ```
 
@@ -91,7 +91,7 @@ You can also execute any valid *pgbouncer* command:
 
 ```coffee
 pgb.execute('show users')
-   .then console.log('done')
+   .then -> console.log('done')
 ```
 
 Please check [pgbouncer documentation](http://pgbouncer.projects.pgfoundry.org/doc/usage.html) for a list of commands.

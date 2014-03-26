@@ -48,14 +48,14 @@ describe 'PgBouncer', ->
       cnx.toURI.withArgs('database 1 properties').returns('database 1 connection string')
       cnx.toURI.withArgs('database 2 properties').returns('database 2 connection string')
       pgb = new PgBouncer(configFile: '/etc/pgbouncer.ini')
-      pgb.read().then ({config, databases}) ->
+      pgb.read().then ({pgbouncer, databases}) ->
         sinon.assert.alwaysCalledWith iniparser.parse, '/etc/pgbouncer.ini'
-        config.should.have.property 'listen_port'
-        config.listen_port.should.eql 5434
-        config.should.have.property 'listen_addr'
-        config.listen_addr.should.eql '127.0.0.1'
-        config.should.have.property 'auth_type'
-        config.auth_type.should.eql 'any'
+        pgbouncer.should.have.property 'listen_port'
+        pgbouncer.listen_port.should.eql 5434
+        pgbouncer.should.have.property 'listen_addr'
+        pgbouncer.listen_addr.should.eql '127.0.0.1'
+        pgbouncer.should.have.property 'auth_type'
+        pgbouncer.auth_type.should.eql 'any'
         databases.should.property 'db1'
         databases.db1.should.eql 'database 1 connection string'
         databases.should.property 'db2'
@@ -190,6 +190,7 @@ describe 'PgBouncer', ->
           listen_port = 6543
           """
         fs.writeFile.args[0][1].should.eql expected
+      .done()
 
 
   describe 'run', ->
