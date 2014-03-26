@@ -2,6 +2,11 @@
 
 Node.js wrapper for [pgbouncer](https://wiki.postgresql.org/wiki/PgBouncer). All methods are asynchronous, using [Q](https://github.com/kriskowal/q) promises.
 
+[![Build Status](https://travis-ci.org/TabDigital/pgbouncer.svg?branch=master)](https://travis-ci.org/TabDigital/pgbouncer)
+
+[![NPM](https://nodei.co/npm/pgbouncer.svg?downloads=true)](https://nodei.co/npm/pgbouncer/)
+
+
 ## Basic usage
 
 ```coffee
