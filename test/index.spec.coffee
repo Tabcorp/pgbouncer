@@ -1,6 +1,5 @@
 assert    = require 'assert'
 should    = require 'should'
-mocks     = require 'mocks'
 iniparser = require 'iniparser'
 sinon     = require 'sinon'
 Q         = require 'q'
