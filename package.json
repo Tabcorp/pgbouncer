@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "coffee-script": "~1.7.1",
-    "js-match": "1.0.x",
     "q": "~0.9.7",
     "iniparser": "~1.0.5",
     "pg": "~2.8.3",
