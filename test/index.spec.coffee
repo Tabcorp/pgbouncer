@@ -116,35 +116,28 @@ describe 'PgBouncer', ->
       fs.writeFile.callsArgWith(2, null)
       pgb = new PgBouncer(configFile: '/etc/pgbouncer.ini')
       pgb.write(
-        listen_addr: '127.0.0.1'
-        listen_port: 5434
-        auth_type: 'any'
-      ,
-        {
-          'wift_racing': 'postgresql://dbserver:5432/wift_racing'
-          'wift_sports': 'postgresql://postgres@:5433/wift_sports'
-        }
+        pgbouncer:
+          listen_addr: '127.0.0.1'
+          listen_port: 5434
+          auth_type: 'any'
+        databases:
+          racing: 'postgresql://dbserver:5432/racing'
+          sports: 'postgresql://postgres@:5433/sports'
       ).then ->
+        expected =
+           """
+           [databases]
+           racing = host=dbserver port=5432 dbname=racing
+           sports = user=postgres port=5433 dbname=sports
+
+           [pgbouncer]
+           listen_addr = 127.0.0.1
+           listen_port = 5434
+           auth_type = any
+           """
         sinon.assert.calledOnce fs.writeFile
         fs.writeFile.args[0][0].should.eql '/etc/pgbouncer.ini'
-        config = iniparser.parseString fs.writeFile.args[0][1]
-        config.should.have.property 'databases'
-        config.databases.should.have.property 'wift_racing'
-        wift_racing_config = iniparser.parseString config.databases['wift_racing'].split(/\s+/).join('\n')
-        wift_racing_config.should.have.property 'host', 'dbserver'
-        wift_racing_config.should.have.property 'port', '5432'
-        wift_racing_config.should.have.property 'dbname', 'wift_racing'
-        wift_racing_config.should.not.have.property 'user'
-        config.databases.should.have.property('wift_sports')
-        wift_sports_config = iniparser.parseString config.databases['wift_sports'].split(/\s+/).join('\n')
-        wift_sports_config.should.not.have.property 'host'
-        wift_sports_config.should.have.property 'port', '5433'
-        wift_sports_config.should.have.property 'dbname', 'wift_sports'
-        wift_sports_config.should.have.property 'user', 'postgres'
-        config.should.have.property('pgbouncer')
-        config.pgbouncer.listen_port.should.eql '5434'
-        config.pgbouncer.listen_addr.should.eql '127.0.0.1'
-        config.pgbouncer.auth_type.should.eql 'any'
+        fs.writeFile.args[0][1].should.eql expected
         done()
       .done()
 
@@ -295,8 +288,8 @@ describe 'PgBouncer', ->
     it 'should execute show databases command and process the results', (done) ->
       pgb.status().then (results) ->
         results.should.eql [
-          {name: 'wift_racing'},
-          {name: 'wift_sports'}
+          {name: 'racing'},
+          {name: 'sports'}
         ]
         sinon.assert.alwaysCalledWith pgb.execute, 'show databases'
         done()
@@ -304,8 +297,8 @@ describe 'PgBouncer', ->
       executeDefer.resolve
         rows: [
           {name: 'pgbouncer'},
-          {name: 'wift_racing'},
-          {name: 'wift_sports'}
+          {name: 'racing'},
+          {name: 'sports'}
         ]
 
     it 'should returns error when execute return error', (done) ->
