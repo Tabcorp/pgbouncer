@@ -1,6 +1,6 @@
 {
   "name": "pgbouncer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Wrapper of pgbouncer service",
   "author": "Tabcorp Digital Technology Team",
   "license": "Copyright TabCorp Pty Ltd 2013",
