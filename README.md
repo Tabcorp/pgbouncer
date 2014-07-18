@@ -4,6 +4,9 @@ Node.js wrapper for [pgbouncer](https://wiki.postgresql.org/wiki/PgBouncer). All
 
 [![Build Status](https://travis-ci.org/TabDigital/pgbouncer.svg?branch=master)](https://travis-ci.org/TabDigital/pgbouncer)
 
+[![Dependency Status](https://david-dm.org/TabDigital/pgbouncer.png?theme=shields.io)](https://david-dm.org/TabDigital/pgbouncer) 
+[![devDependency Status](https://david-dm.org/TabDigital/pgbouncer/dev-status.png?theme=shields.io)](https://david-dm.org/TabDigital/pgbouncer#info=devDependencies)
+
 [![NPM](https://nodei.co/npm/pgbouncer.svg?downloads=true)](https://nodei.co/npm/pgbouncer/)
 
 
