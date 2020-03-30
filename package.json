@@ -16,7 +16,7 @@
     "coffee-script": "~1.7.1",
     "q": "~0.9.7",
     "iniparser": "~1.0.5",
-    "pg": "~2.8.3",
+    "pg": "~8.0.0",
     "lodash": "~2.4.1"
   },
   "devDependencies": {
